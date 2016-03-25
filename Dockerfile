@@ -4,6 +4,7 @@ FROM java:8
 ENV JIRA_HOME     /var/atlassian/jira
 ENV JIRA_INSTALL  /opt/atlassian/jira
 ENV JIRA_VERSION  7.1.2
+ENV X_PATH	/jira
 
 # Install Atlassian JIRA and helper tools and setup initial home
 # directory structure.
@@ -28,6 +29,7 @@ RUN set -x \
     && chown -R daemon:daemon  "${JIRA_INSTALL}/work" \
     && touch --date "@0"       "/opt/atlassian/jira/conf/server.xml" \
     && sed --in-place          "s/java version/openjdk version/g" "${JIRA_INSTALL}/bin/check-java.sh" \
+    && sed --in-place	"s/JVM_SUPPORT_RECOMMENDED_ARGS=\"\"/JVM_SUPPORT_RECOMMENDED_ARGS=\"-Datlassian.plugins.enable.wait=300\"/g" "${JIRA_INSTALL}/bin/setenv.sh" \
     && echo -e                 "\njira.home=$JIRA_HOME" >> "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties"
 
 # Use the default unprivileged account. This could be considered bad practice
@@ -41,7 +43,7 @@ EXPOSE 8080
 # Set volume mount points for installation and home directory. Changes to the
 # home directory needs to be persisted as well as parts of the installation
 # directory due to eg. logs.
-VOLUME ["/var/atlassian/jira"]
+VOLUME ["/var/atlassian/jira", "/opt/atlassian/jira"]
 
 # Set the default working directory as the installation directory.
 WORKDIR /var/atlassian/jira
